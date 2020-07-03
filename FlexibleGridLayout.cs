@@ -1,71 +1,89 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class FlexibleGridLayout : LayoutGroup
 {
-    [SerializeField] private CellPriority cellPriority;
-    [SerializeField] private int rows;
-    [SerializeField] private int columns;
-    [SerializeField] private Vector2 cellSize;
-    [SerializeField] private Vector2 spacing;
-    [SerializeField] private bool fitX;
-    [SerializeField] private bool fitY;
+    private bool allowOutOfBounds;
+    private GridPriority gridPriority;
+    private int rows;
+    private int columns;
+    private Vector2 cellSize;
+    private Vector2 spacing;
+    private bool fitX;
+    private bool fitY;
 
-    public enum CellPriority
+    public enum GridPriority
     {
-        Width,
-        Height,
+        Rows,
+        Columns,
         FixedRows,
         FixedColumns
     }
 
-    private float parentWidth => rectTransform.rect.width; //The width of this ui component
-    private float parentHeight => rectTransform.rect.height; //The height of this ui component
-    private float realWidthAfterPadding => parentWidth - padding.left - padding.right; //The width of this ui component after padding
-    private float realHeightAfterPadding => parentHeight - padding.top - padding.bottom; //The height of this ui component after padding
+    private float rectWidth => rectTransform.rect.width; //The width of this ui component
+    private float rectHeight => rectTransform.rect.height; //The height of this ui component
+    private float realWidthAfterPadding => rectWidth - padding.left - padding.right; //The width of this ui component after padding
+    private float realHeightAfterPadding => rectHeight - padding.top - padding.bottom; //The height of this ui component after padding
     private float totalWidthOfCells => (columns * cellSize.x) + (spacing.x * (columns - 1)); //The total width of all the cells including spacing
     private float totalHeightOfCells => (rows * cellSize.y) + (spacing.y * (rows - 1)); //The total height of all the cells including spacing
+    private float fitCellWidth => (realWidthAfterPadding - (spacing.x * (columns - 1))) / columns; //The width of of a cell, In a way that all the cells will fit in screen
+    private float fitCellHeight => (realHeightAfterPadding - (spacing.y * (rows - 1))) / rows; //The height of of a cell, In a way that all the cells will fit in screen
 
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
-
-        float sqrRT = Mathf.Sqrt(transform.childCount);
-        if (cellPriority == CellPriority.Width)
+        var rowsAndColumns = calculateRowsAndColumns();
+        rows = rowsAndColumns.rows;
+        columns = rowsAndColumns.columns;
+        if ((rows < 1 || columns < 1) && rectChildren.Count > 0)
         {
-            columns = Mathf.RoundToInt(sqrRT);
-            rows = Mathf.CeilToInt(sqrRT);
-        } else if (cellPriority == CellPriority.Height)
-        {
-            columns = Mathf.CeilToInt(sqrRT);
-            rows = Mathf.RoundToInt(sqrRT);
-        } else if (cellPriority == CellPriority.FixedColumns)
-        {
-            rows = Mathf.CeilToInt((float)transform.childCount / columns);
-        } else if (cellPriority == CellPriority.FixedRows)
-        {
-            columns = Mathf.CeilToInt((float)transform.childCount / rows);
+            print("Rows/Columns can't be less than 1");
+            return;
         }
-
-        float fitCellWidth = (realWidthAfterPadding - (spacing.x * (columns - 1)))/columns;
-        float fitCellHeight = (realHeightAfterPadding - (spacing.y * (rows - 1)))/rows;
 
         cellSize.x = fitX ? fitCellWidth : cellSize.x;
         cellSize.y = fitY ? fitCellHeight : cellSize.y;
 
-        for(int i = 0; i < rectChildren.Count; i++)
+        for (int i = 0; i < rectChildren.Count; i++)
         {
-            int rowPosition = cellPriority == CellPriority.FixedColumns || cellPriority == CellPriority.Width ? i / columns : i % rows;
-            int columnPosition = cellPriority == CellPriority.FixedColumns || cellPriority == CellPriority.Width ? i % columns : i / rows;
+            int rowPosition = gridPriority == GridPriority.FixedColumns || gridPriority == GridPriority.Rows ? i / columns : i % rows;
+            int columnPosition = gridPriority == GridPriority.FixedColumns || gridPriority == GridPriority.Rows ? i % columns : i / rows;
 
             RectTransform item = rectChildren[i];
-            float xPos = xPosByChildAlignment(cellSize.x,columnPosition);
-            float yPos = yPosByChildAlignment(cellSize.y,rowPosition);
+            float xPos = xPosByChildAlignment(cellSize.x, columnPosition);
+            float yPos = yPosByChildAlignment(cellSize.y, rowPosition);
 
             SetChildAlongAxis(item, 0, xPos, cellSize.x);
             SetChildAlongAxis(item, 1, yPos, cellSize.y);
         }
     }
+
+    /// <summary>
+    /// Returns how much rows/columns need to be in the grid layout
+    /// </summary>
+    /// <returns>The number of rows and columns</returns>
+    protected (int rows, int columns) calculateRowsAndColumns()
+    {
+        float sqrRT = Mathf.Sqrt(rectChildren.Count);
+        switch (gridPriority)
+        {
+            case FlexibleGridLayout.GridPriority.Rows:
+                return (Mathf.CeilToInt(sqrRT), Mathf.RoundToInt(sqrRT));
+            case FlexibleGridLayout.GridPriority.Columns:
+                return (Mathf.RoundToInt(sqrRT), Mathf.CeilToInt(sqrRT));
+            case FlexibleGridLayout.GridPriority.FixedColumns:
+                return (Mathf.CeilToInt((float)rectChildren.Count / columns), columns);
+            case FlexibleGridLayout.GridPriority.FixedRows:
+                return (rows, Mathf.CeilToInt((float)rectChildren.Count / rows));
+            default:
+                throw new NotImplementedException("Grid priority not implemented");
+        }
+    }
+
     /// <summary>
     /// Returns the xPos of the cell in a specific row
     /// </summary>
@@ -74,7 +92,7 @@ public class FlexibleGridLayout : LayoutGroup
     /// <returns>The xPos of the cell in a specific row</returns>
     private float xPosByChildAlignment(float cellWidth, int columnPosition)
     {
-        bool isOutOfUIBounds = areCellsGoingToBeOutsideOfUIBounds(Vector2Axis.X);
+        bool isOutOfUIBounds = allowOutOfBounds ? false : totalWidthOfCells > realWidthAfterPadding;
         if (isOutOfUIBounds || fitX || childAlignment == TextAnchor.UpperLeft || childAlignment == TextAnchor.MiddleLeft || childAlignment == TextAnchor.LowerLeft)
         {
             return (cellWidth * columnPosition) + (spacing.x * columnPosition) + padding.left;
@@ -101,11 +119,12 @@ public class FlexibleGridLayout : LayoutGroup
     /// <returns>The yPos of the cell in a specific row</returns>
     private float yPosByChildAlignment(float cellHeight, int rowPosition)
     {
-        bool isOutOfUIBounds = areCellsGoingToBeOutsideOfUIBounds(Vector2Axis.Y);
+        bool isOutOfUIBounds = allowOutOfBounds ? false : totalHeightOfCells > realHeightAfterPadding;
         if (isOutOfUIBounds || fitY || childAlignment == TextAnchor.UpperLeft || childAlignment == TextAnchor.UpperCenter || childAlignment == TextAnchor.UpperRight)
         {
             return (cellHeight * rowPosition) + (spacing.y * rowPosition) + padding.top;
-        } else if (childAlignment == TextAnchor.MiddleLeft || childAlignment == TextAnchor.MiddleCenter || childAlignment == TextAnchor.MiddleRight)
+        }
+        else if (childAlignment == TextAnchor.MiddleLeft || childAlignment == TextAnchor.MiddleCenter || childAlignment == TextAnchor.MiddleRight)
         {
             float startOfYPos = (realHeightAfterPadding - totalHeightOfCells) / 2;
             float yPosOfChild = startOfYPos + (rowPosition * (cellHeight + spacing.y));
@@ -119,43 +138,56 @@ public class FlexibleGridLayout : LayoutGroup
         }
         throw new System.NotImplementedException("Should not go here honestly");
     }
-    /// <summary>
-    /// Checks if at least 1 cell will go out of bounds(minus padding) of the parent
-    /// </summary>
-    /// <param name="axis">The axis in vector2 we want to check</param>
-    /// <returns>Returns if at least 1 cell is out of bounds(minus padding) in the specific axis</returns>
-    private bool areCellsGoingToBeOutsideOfUIBounds(Vector2Axis axis)
-    {
-        if (axis == Vector2Axis.X)
-        {
-            return totalWidthOfCells > realWidthAfterPadding;
-        } else if (axis == Vector2Axis.Y)
-        {
-            return totalHeightOfCells > realHeightAfterPadding;
-        }
-        throw new System.NotImplementedException("Axis not supported");
-    }
-    /// <summary>
-    /// Represents and axis in vector2
-    /// </summary>
-    private enum Vector2Axis
-    {
-        X,
-        Y
-    }
 
     public override void CalculateLayoutInputVertical()
     {
-        
+
     }
 
     public override void SetLayoutHorizontal()
     {
-        
+
     }
 
     public override void SetLayoutVertical()
     {
-        
+
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(FlexibleGridLayout))]
+    [CanEditMultipleObjects]
+    public class FlexibleGridLayoutEditor : Editor
+    {
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            FlexibleGridLayout flexibleGridLayout = (FlexibleGridLayout)target;
+            flexibleGridLayout.allowOutOfBounds = EditorGUILayout.Toggle(new GUIContent("Allow out of bounds", "Ignores the bounds of the screen for child alignment, In other words if not allowing out of bounds it will behave like unity layout, Means that if the cells are out of bounds it will snap to Upper or Left child alignment"), flexibleGridLayout.allowOutOfBounds);
+            flexibleGridLayout.gridPriority = (GridPriority)EditorGUILayout.EnumPopup("Grid Priority", flexibleGridLayout.gridPriority);
+            flexibleGridLayout.rows = EditorGUILayout.IntField("Rows", flexibleGridLayout.rows);
+            flexibleGridLayout.columns = EditorGUILayout.IntField("Columns", flexibleGridLayout.columns);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Cell Size", GUILayout.Width(65));
+            EditorGUILayout.LabelField("", GUILayout.ExpandWidth(true), GUILayout.MaxWidth(50));
+            GUI.enabled = !flexibleGridLayout.fitX;
+            EditorGUILayout.LabelField("X", GUILayout.Width(8));
+            flexibleGridLayout.cellSize.x = EditorGUILayout.FloatField(flexibleGridLayout.cellSize.x, GUILayout.MinWidth(55), GUILayout.Width(55), GUILayout.ExpandWidth(true));
+            GUI.enabled = !flexibleGridLayout.fitY;
+            EditorGUILayout.LabelField("Y", GUILayout.Width(8));
+            flexibleGridLayout.cellSize.y = EditorGUILayout.FloatField(flexibleGridLayout.cellSize.y, GUILayout.MinWidth(50), GUILayout.Width(50), GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("", GUILayout.ExpandWidth(true), GUILayout.MinWidth(60), GUILayout.Width(60));
+            EditorGUILayout.EndHorizontal();
+            GUI.enabled = true;
+
+            flexibleGridLayout.spacing = EditorGUILayout.Vector2Field("Spacing", flexibleGridLayout.spacing);
+            flexibleGridLayout.fitX = EditorGUILayout.Toggle("Fit X", flexibleGridLayout.fitX);
+            flexibleGridLayout.fitY = EditorGUILayout.Toggle("Fit Y", flexibleGridLayout.fitY);
+
+            flexibleGridLayout.CalculateLayoutInputHorizontal();
+        }
+    }
+#endif
 }
