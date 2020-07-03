@@ -111,7 +111,7 @@ public class MonsterGridLayout : LayoutGroup
     /// Returns how much rows/columns need to be in the grid layout
     /// </summary>
     /// <returns>The number of rows and columns</returns>
-    protected (int rows, int columns) calculateRowsAndColumns()
+    protected virtual (int rows, int columns) calculateRowsAndColumns()
     {
         float sqrRT = Mathf.Sqrt(rectChildren.Count);
         switch (gridPriority)
@@ -134,7 +134,7 @@ public class MonsterGridLayout : LayoutGroup
     /// </summary>
     /// <param name="cellIndex">The index of the cell in rect children</param>
     /// <returns>The row position of the cell</returns>
-    protected int calculateRowPosition(int cellIndex)
+    protected virtual int calculateRowPosition(int cellIndex)
     {
         return gridPriority == GridPriority.FixedColumns || gridPriority == GridPriority.Rows ? cellIndex / columns : cellIndex % rows;
     }
@@ -144,7 +144,7 @@ public class MonsterGridLayout : LayoutGroup
     /// </summary>
     /// <param name="cellIndex">The index of the cell in rect children</param>
     /// <returns>The column position of the cell</returns>
-    protected int calculateColumnPosition(int cellIndex)
+    protected virtual int calculateColumnPosition(int cellIndex)
     {
         return gridPriority == MonsterGridLayout.GridPriority.FixedColumns || gridPriority == MonsterGridLayout.GridPriority.Rows ? cellIndex % columns : cellIndex / rows;
     }
@@ -155,7 +155,7 @@ public class MonsterGridLayout : LayoutGroup
     /// <param name="columnPosition">In specific column</param>
     /// <param name="rowPosition">In specific row</param>
     /// <returns>X position</returns>
-    protected float xPosForCellsByChildAlignment(int columnPosition, int rowPosition)
+    protected virtual float xPosForCellsByChildAlignment(int columnPosition, int rowPosition)
     {
         float totalWidthOfRow = calculateTotalWidthInRow(rowPosition);
         float startOfXPos;
@@ -189,7 +189,7 @@ public class MonsterGridLayout : LayoutGroup
     /// <param name="rowPosition">In specific row</param>
     /// <param name="columnPosition">In specific column</param>
     /// <returns>Y position</returns>
-    protected float yPosForCellsByChildAlignment(int rowPosition, int columnPosition)
+    protected virtual float yPosForCellsByChildAlignment(int rowPosition, int columnPosition)
     {
         float totalHeightOfColumn = calculateTotalHeightInColumn(columnPosition);
         float startOfYPos;
