@@ -8,7 +8,7 @@ FlexibleGridLayout is a grid layout that supports only same size cell
 MonsterGridLayout is a grid layout that supports same cell size and custom cell size with more features
 TBH FlexibleGridLayout will suffice for 99% of usage
 
-If you don't like my custom editor in FlexibleGridLayout just remove the custom editor and make all the field properties "SerializeField"
+If you don't like my custom editor in FlexibleGridLayout just remove the custom editor and remove the [HideInInspector] from all the parameters
 If you remove the custom editor from MonsterGridLayout you are on your own :D
 
 If you want to change the logic for MonsterGridLayout you can inherit from it and change the calculations for:
