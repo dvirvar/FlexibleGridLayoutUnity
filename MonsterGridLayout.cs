@@ -8,19 +8,47 @@ using UnityEditor;
 
 public class MonsterGridLayout : LayoutGroup
 {
+    [SerializeField]
+    [HideInInspector]
     private bool allowOutOfBounds;
+    [SerializeField]
+    [HideInInspector]
     private GridPriority gridPriority;
+    [SerializeField]
+    [HideInInspector]
     private int rows;
+    [SerializeField]
+    [HideInInspector]
     private int columns;
+    [SerializeField]
+    [HideInInspector]
     private bool customCellSize;
+    [SerializeField]
+    [HideInInspector]
     private ContentSizeFitter.FitMode horizontalSizePreference;
+    [SerializeField]
+    [HideInInspector]
     private ContentSizeFitter.FitMode verticalSizePreference;
+    [SerializeField]
+    [HideInInspector]
     private bool rootSpacingFromHighestCellInRow;
+    [SerializeField]
+    [HideInInspector]
     private bool rootSpacingFromWidestCellInColumn;
+    [SerializeField]
+    [HideInInspector]
     private Vector2 cellSize;
+    [SerializeField]
+    [HideInInspector]
     private Vector2 spacing;
+    [SerializeField]
+    [HideInInspector]
     private bool magnetizeCells;
+    [SerializeField]
+    [HideInInspector]
     private bool fitX;
+    [SerializeField]
+    [HideInInspector]
     private bool fitY;
 
     private Vector2 fitCell;

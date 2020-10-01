@@ -7,13 +7,29 @@ using UnityEditor;
 
 public class FlexibleGridLayout : LayoutGroup
 {
+    [SerializeField]
+    [HideInInspector]
     private bool allowOutOfBounds;
+    [SerializeField]
+    [HideInInspector]
     private GridPriority gridPriority;
+    [SerializeField]
+    [HideInInspector]
     private int rows;
+    [SerializeField]
+    [HideInInspector]
     private int columns;
+    [SerializeField]
+    [HideInInspector]
     private Vector2 cellSize;
+    [SerializeField]
+    [HideInInspector]
     private Vector2 spacing;
+    [SerializeField]
+    [HideInInspector]
     private bool fitX;
+    [SerializeField]
+    [HideInInspector]
     private bool fitY;
 
     public enum GridPriority
@@ -32,7 +48,7 @@ public class FlexibleGridLayout : LayoutGroup
     private float totalHeightOfCells => (rows * cellSize.y) + (spacing.y * (rows - 1)); //The total height of all the cells including spacing
     private float fitCellWidth => (realWidthAfterPadding - (spacing.x * (columns - 1))) / columns; //The width of of a cell, In a way that all the cells will fit in screen
     private float fitCellHeight => (realHeightAfterPadding - (spacing.y * (rows - 1))) / rows; //The height of of a cell, In a way that all the cells will fit in screen
-
+    
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
@@ -159,10 +175,10 @@ public class FlexibleGridLayout : LayoutGroup
     [CanEditMultipleObjects]
     public class FlexibleGridLayoutEditor : Editor
     {
-
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+            EditorGUI.BeginChangeCheck();
             FlexibleGridLayout flexibleGridLayout = (FlexibleGridLayout)target;
             flexibleGridLayout.allowOutOfBounds = EditorGUILayout.Toggle(new GUIContent("Allow out of bounds", "Ignores the bounds of the screen for child alignment, In other words if not allowing out of bounds it will behave like unity layout, Means that if the cells are out of bounds it will snap to Upper or Left child alignment"), flexibleGridLayout.allowOutOfBounds);
             flexibleGridLayout.gridPriority = (GridPriority)EditorGUILayout.EnumPopup("Grid Priority", flexibleGridLayout.gridPriority);
@@ -185,8 +201,11 @@ public class FlexibleGridLayout : LayoutGroup
             flexibleGridLayout.spacing = EditorGUILayout.Vector2Field("Spacing", flexibleGridLayout.spacing);
             flexibleGridLayout.fitX = EditorGUILayout.Toggle("Fit X", flexibleGridLayout.fitX);
             flexibleGridLayout.fitY = EditorGUILayout.Toggle("Fit Y", flexibleGridLayout.fitY);
-
-            flexibleGridLayout.CalculateLayoutInputHorizontal();
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                flexibleGridLayout.CalculateLayoutInputHorizontal();
+            }
         }
     }
 #endif
