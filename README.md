@@ -5,8 +5,12 @@ I took the FlexibleGridLayout script from Game Dev Guide(Youtuber) and upgraded 
 Here is the link for [Game Dev Guide Script](https://www.youtube.com/watch?v=CGsEJToeXmA)
 
 FlexibleGridLayout is a grid layout that supports only same size cell
+FlexibleScrollableGridLayout is subclass of FlexibleGridLayout that supports scrollability, No need to use ContentSizeFitter
 MonsterGridLayout is a grid layout that supports same cell size and custom cell size with more features
 TBH FlexibleGridLayout will suffice for 99% of usage
+
+To use FlexibleScrollableGridLayout you have to wrap the object that hold the FlexibleScrollableGridLayout 
+And give the wrapper object the real width and height you want to use for the grid layout
 
 If you don't like my custom editor in FlexibleGridLayout just remove the custom editor and remove the [HideInInspector] from all the parameters
 If you remove the custom editor from MonsterGridLayout you are on your own :D
