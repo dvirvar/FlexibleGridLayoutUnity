@@ -13,11 +13,13 @@ public class FlexibleScrollableGridLayout : FlexibleGridLayout
 
 
     //So it will work in editor
+#if UNITY_EDITOR
     protected override void OnValidate()
     {
         base.OnValidate();
         parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
     }
+    #endif
 
     //So it will work in run time
     protected override void Start()
