@@ -31,6 +31,8 @@ public class FlexibleScrollableGridLayout : FlexibleGridLayout
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
+        rectTransform.anchorMin = new Vector2(.5f, .5f);
+        rectTransform.anchorMax = new Vector2(.5f, .5f);
         rectTransform.sizeDelta = gridSize;//For scroll to work
     }
 #if UNITY_EDITOR

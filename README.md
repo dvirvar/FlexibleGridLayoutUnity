@@ -11,6 +11,7 @@ TBH FlexibleGridLayout will suffice for 99% of usage
 
 To use FlexibleScrollableGridLayout you have to wrap the object that hold the FlexibleScrollableGridLayout 
 And give the wrapper object the real width and height you want to use for the grid layout
+For example when using the default Scroll View component the FlexibleScrollableGridLayout needs to be on the "content" game object
 
 If you don't like my custom editor in FlexibleGridLayout just remove the custom editor and remove the [HideInInspector] from all the parameters
 If you remove the custom editor from MonsterGridLayout you are on your own :D

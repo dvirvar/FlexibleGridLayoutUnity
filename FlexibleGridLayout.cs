@@ -55,11 +55,14 @@ public class FlexibleGridLayout : LayoutGroup
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
-
+        if (rectChildren.Count < 1)
+        {
+            return;
+        }
         var rowsAndColumns = calculateRowsAndColumns();
         rows = rowsAndColumns.rows;
         columns = rowsAndColumns.columns;
-        if ((rows < 1 || columns < 1) && rectChildren.Count > 0)
+        if (rows < 1 || columns < 1)
         {
             print("Rows/Columns can't be less than 1");
             return;
