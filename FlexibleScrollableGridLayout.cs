@@ -33,6 +33,12 @@ public class FlexibleScrollableGridLayout : FlexibleGridLayout
         base.CalculateLayoutInputHorizontal();
         rectTransform.anchorMin = new Vector2(.5f, .5f);
         rectTransform.anchorMax = new Vector2(.5f, .5f);
+        //When instantiating items in runtime, it will fix the positioning
+        if (rectChildren.Count > 0 && !firstCalculationWithChildren)
+        {
+            rectTransform.anchoredPosition = new Vector2(gridSize.x / -2, rectTransform.anchoredPosition.y);
+            firstCalculationWithChildren = true;
+        }
         rectTransform.sizeDelta = gridSize;//For scroll to work
     }
 #if UNITY_EDITOR
