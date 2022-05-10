@@ -10,7 +10,7 @@ public class FlexibleScrollableGridLayout : FlexibleGridLayout
     protected override float rectWidth => parentRectTransform.rect.width;
     protected override float rectHeight => parentRectTransform.rect.height;
     private Vector2 gridSize => new Vector2(totalWidthOfCells + padding.left + padding.right, totalHeightOfCells + padding.top + padding.bottom);
-
+    private bool firstCalculationWithChildren = false;
 
     //So it will work in editor
 #if UNITY_EDITOR
@@ -19,7 +19,7 @@ public class FlexibleScrollableGridLayout : FlexibleGridLayout
         base.OnValidate();
         parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
     }
-    #endif
+#endif
 
     //So it will work in run time
     protected override void Start()
